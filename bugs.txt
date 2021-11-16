@@ -1,0 +1,30 @@
+1. XSS vulnerability: Reflected xss attack on
+http://localhost:8000/buy.html
+
+The /buy.html path on the server accepts an argument director that is put into
+the string "endorsed by ----". So for example, if the endorsement comes from
+Alice, then the URL would be http://localhost:8000/buy.html?director=Alice, and
+the generated HTML page would contain the string "Endorsed by Alice". Since this
+field is not checked for any vulnerabilities, then a script can be run in the
+context of the logged in user by adding it to the URL. A proof of concept URL is
+
+http://localhost:8000/buy.html?director="</p><script>alert('xss')</script><p>"
+
+The quotes and tags are necessary to make the final produced HTML document valid
+by closing the previous paragraph tag and creating a new one to match with what
+is in the static page already.
+
+2. CSRF: gifting cards to yourself
+There is no CSRF protection on the gifting card page. If a user submits a gift
+card for someone else, then as long as they are logged in, the gifting process
+goes through. For example, if I can get someone to make a post request to this
+URL:
+
+    http://localhost:8000/gift/0
+
+with the values:
+
+    amount=1234&username=kidus
+
+the giftcard will be deposited in my account.
+

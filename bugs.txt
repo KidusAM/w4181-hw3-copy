@@ -15,6 +15,7 @@ by closing the previous paragraph tag and creating a new one to match with what
 is in the static page already.
 
 2. CSRF: gifting cards to yourself
+
 There is no CSRF protection on the gifting card page. If a user submits a gift
 card for someone else, then as long as they are logged in, the gifting process
 goes through. For example, if I can get someone to make a post request to this
@@ -28,3 +29,14 @@ with the values:
 
 the giftcard will be deposited in my account.
 
+3. SQL to steal password hash of admin
+
+The SQL vulnerability lies in how you are allowed to upload files for cards and
+there is an unchecked sql statement that uses data directly from the file. One
+possible (kind of bruteforce) way for this attack to work is to set the
+signature field in the file to the string
+
+    "nothing' UNION select username || ': ' || password from LegacySite_user --"
+
+which first closes the select and gets the password hashes which are
+consequently printed in the returned page.

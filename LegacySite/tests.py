@@ -22,7 +22,7 @@ def test_xss():
 
 		response = c.get(URL)
 		if "</p><script>alert(xss)</script><p>" in response.content.decode():
-				pass
+				print("xss worked")
 				# raise RuntimeError("XSS vulnerability found in /buy?director=")
 
 # 2- Write the test confirming CSRF vulnerability is fixed

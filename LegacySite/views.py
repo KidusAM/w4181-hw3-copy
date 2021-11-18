@@ -71,6 +71,9 @@ def buy_card_view(request, prod_num=0):
         director = request.GET.get('director', None)
         if director is not None:
             # KG: Wait, what is this used for? Need to check the template.
+            director = ''.join([c for c in director if c.isalpha()])
+            if len(director) > 10:
+                director = director[:10]
             context['director'] = director
         if prod_num != 0:
             try:

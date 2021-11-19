@@ -127,6 +127,9 @@ def gift_card_view(request, prod_num=0):
         context['user'] = None
         director = request.GET.get('director', None)
         if director is not None:
+            director = ''.join([c for c in director if c.isalpha()])
+            if len(director) > 10:
+                director = director[:10]
             context['director'] = director
         if prod_num != 0:
             try:

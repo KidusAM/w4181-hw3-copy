@@ -3,11 +3,12 @@ from django.db import connection
 from django.contrib.auth import authenticate
 from LegacySite.models import User
 from os import system
+from random import randint
 import LegacySite.extras as extras
 
 # Create your tests here.
 # Please view: https://docs.djangoproject.com/en/3.2/topics/testing/overview/
-c = Client()
+c = Client(enforce_csrf_checks=True)
 
 # Sample check that you can access website
 response = c.get("/gift/")
@@ -22,8 +23,8 @@ def test_xss():
 
 		response = c.get(URL)
 		if "</p><script>alert(xss)</script><p>" in response.content.decode():
-				print("xss worked")
-				# raise RuntimeError("XSS vulnerability found in /buy?director=")
+				# print("xss worked")
+				raise RuntimeError("XSS vulnerability found in /buy?director=")
 
 # 2- Write the test confirming CSRF vulnerability is fixed
 def test_csrf():
@@ -48,11 +49,12 @@ def test_csrf():
 				raise RuntimeError("Login failed when trying to test csrf")
 
 		# now try the csrf attack on the first dummy user
-		response = c.post("/gift", {'amount':1, 'username':dummy_users[1][0]})
+		response = c.post("/gift", {'amount':randint(1,1000000),
+							  'username':dummy_users[1][0],
+							  'csrfmiddlewaretoken':"incorrecttoken"})
 
-		if "Card given to" in response.content.decode():
-				print("csrf worked")
-				# raise RuntimeError("CSRF vulnerability found in /gift")
+		if response.status_code != 403 and "Card given to" in response.content.decode():
+				raise RuntimeError("CSRF vulnerability found in /gift")
 
 # 3- Write the test confirming SQL Injection attack is fixed
 def test_sqli():
@@ -80,7 +82,8 @@ def test_sqli():
 									'card_supplied':"true"})
 
 		if "admin: " in response.content.decode():
-				print("sqli worked")
+				# print("sqli worked")
+				raise RuntimeError("SQLI vulnerability found on gift upload")
 
 test_xss()
 test_csrf()

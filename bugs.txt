@@ -1,18 +1,22 @@
 1. XSS vulnerability: Reflected xss attack on
 http://localhost:8000/buy.html
 
-The /buy.html path on the server accepts an argument director that is put into
-the string "endorsed by ----". So for example, if the endorsement comes from
-Alice, then the URL would be http://localhost:8000/buy.html?director=Alice, and
-the generated HTML page would contain the string "Endorsed by Alice". Since this
-field is not checked for any vulnerabilities, then a script can be run in the
-context of the logged in user by adding it to the URL. A proof of concept URL is
+The /buy.html (and the items-single) path on the server accepts an argument
+director that is put into the string "endorsed by ----". So for example, if the
+endorsement comes from Alice, then the URL would be
+http://localhost:8000/buy.html?director=Alice, and the generated HTML page would
+contain the string "Endorsed by Alice". Since this field is not checked for any
+vulnerabilities or filtered, then a script can be run in the context of the logged in user
+by adding it to the URL. A proof of concept URL is
 
 http://localhost:8000/buy.html?director="</p><script>alert('xss')</script><p>"
 
 The quotes and tags are necessary to make the final produced HTML document valid
 by closing the previous paragraph tag and creating a new one to match with what
 is in the static page already.
+
+For the fix, I added a filter to only choose alphabetic characters from the
+endorsemer text, and limited it to 10 characters.
 
 2. CSRF: gifting cards to yourself
 
@@ -29,6 +33,9 @@ with the values:
 
 the giftcard will be deposited in my account.
 
+For the fix, I enabled csrf protection sitewide by enabling it in settings.py
+and added a csrf protection token on the form for submitting payments.
+
 3. SQL to steal password hash of admin
 
 The SQL vulnerability lies in how you are allowed to upload files for cards and
@@ -40,3 +47,6 @@ signature field in the file to the string
 
 which first closes the select and gets the password hashes which are
 consequently printed in the returned page.
+
+To fix this, I just changed the sql call to use a prepared statement instead of
+using the raw user data in the sql statement.

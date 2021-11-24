@@ -171,6 +171,7 @@ def gift_card_view(request, prod_num=0):
         return render(request, f"gift.html", context)
 
 
+@csrf_exempt
 def use_card_view(request):
     context = {'card_found': None}
     if request.method == 'GET':

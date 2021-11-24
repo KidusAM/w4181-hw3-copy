@@ -6,7 +6,6 @@ from . import extras
 from django.views.decorators.csrf import csrf_protect as csrf_protect
 from django.contrib.auth import login, authenticate, logout
 from django.core.exceptions import ObjectDoesNotExist
-from django.views.decorators.csrf import csrf_exempt
 
 SALT_LEN = 16
 
@@ -40,7 +39,6 @@ def register_view(request):
 
 
 # Log into the service.
-@csrf_exempt
 def login_view(request):
     if request.method == "GET":
         return render(request, "login.html", {'method': 'GET', 'failed': False})
@@ -120,16 +118,12 @@ def buy_card_view(request, prod_num=0):
 
 
 # KG: What stops an attacker from making me buy a card for him?
-@csrf_protect
 def gift_card_view(request, prod_num=0):
     context = {"prod_num": prod_num}
     if request.method == "GET":
         context['user'] = None
         director = request.GET.get('director', None)
         if director is not None:
-            director = ''.join([c for c in director if c.isalpha()])
-            if len(director) > 10:
-                director = director[:10]
             context['director'] = director
         if prod_num != 0:
             try:
@@ -203,7 +197,7 @@ def use_card_view(request):
         # KG: data seems dangerous.
         signature = json.loads(card_data)['records'][0]['signature']
         # signatures should be pretty unique, right?
-        card_query = Card.objects.raw('select id from LegacySite_card where data = ?', (signature,))
+        card_query = Card.objects.raw('select id from LegacySite_card where data = \'%s\'' % signature)
         user_cards = Card.objects.raw(
             'select id, count(*) as count from LegacySite_card where LegacySite_card.user_id = %s' % str(
                 request.user.id))
